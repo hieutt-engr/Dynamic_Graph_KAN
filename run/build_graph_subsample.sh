@@ -1,9 +1,9 @@
-python build_ivn_graphs.py \
+python build_graphs_node_classification.py \
   --input_dir ./data/2017-subaru-forester/preprocessed_v3 \
-  --output_dir ./data/2017-subaru-forester/graphs_sequences_small \
+  --output_dir ./data/2017-subaru-forester/graphs_subsample_node_classification_v2 \
   --graphs_per_shard 2000 \
-  --temporal_k 1 \
-  --same_id_k 1 \
+  --temporal_k 3 \
+  --same_id_k 3 \
   --payload_topk 1 \
   --timing_topk 1 \
   --subsample_mode keep_all_attacks_downsample_normal \

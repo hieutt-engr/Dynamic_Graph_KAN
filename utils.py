@@ -2,34 +2,9 @@ import os
 import torch 
 from sklearn.metrics import confusion_matrix
 import pandas as pd
-import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
-
-from dataset import CANDataset
-
-def load_dataset(args, trial_id=1):
-    if args.car_model is None:
-        data_dir = f'TFRecord_w{args.window_size}_s{args.strided}'
-    else:
-        data_dir = f'TFRecord_{args.car_model}_w{args.window_size}_s{args.strided}'
-    data_dir = os.path.join(args.data_path, data_dir, str(trial_id))
-    
-    train_dataset = CANDataset(data_dir,
-                               window_size = args.window_size)
-    val_dataset = CANDataset(data_dir, 
-                             window_size = args.window_size,
-                            is_train=False)
-
-    train_loader = torch.utils.data.DataLoader(
-                train_dataset, batch_size=args.batch_size, 
-                shuffle=True, num_workers=args.num_workers, pin_memory=True)
-
-    val_loader = torch.utils.data.DataLoader(
-                val_dataset, batch_size=args.batch_size, 
-                num_workers=args.num_workers, pin_memory=True)
-    
-    return train_loader, val_loader
+from pathlib import Path
 
 def change_new_state_dict(state_dict):
     new_state_dict = {}
@@ -85,27 +60,7 @@ def get_prediction(model, dataloader):
             labels[k:k+len(images)] = target.numpy()
             k += len(images)
     return prediction, labels
-
-def draw_confusion_matrix(cm, classes, save_dir=None):
-    cm_df = pd.DataFrame(cm,
-                     index = classes, 
-                     columns = classes)
-    plt.figure(figsize=(10,8))
-    sns.heatmap(cm_df, annot=True, cmap='YlGnBu', cbar=False, linewidths=0.5)
-    plt.title('Confusion Matrix')
-    plt.ylabel('Actual Values')
-    plt.xlabel('Predicted Values')
-    if save_dir is not None:
-        plt.savefig(save_dir, dpi=300)
-    plt.show()
     
-def print_results(results):
-    print('\t' + '\t'.join(map(str, results.keys())))
-    for idx, c in enumerate(classes):
-        res = [round(results[k][idx], 4) for k in results.keys()]
-        output = [c] + res
-        print('\t'.join(map(str, output)))
-
 def calculate_class_weights(loader, num_classes, device):
     count = torch.zeros(num_classes)
     print("Computing class weights...")
@@ -118,8 +73,6 @@ def calculate_class_weights(loader, num_classes, device):
     raw_weights = total / (num_classes * (count + 1e-6))
     smoothed_weights = torch.sqrt(raw_weights) 
     
-    # Hoặc dùng Log nếu muốn mềm hơn nữa:
-    # smoothed_weights = torch.log(raw_weights + 1.0) + 1.0
 
     print(f"Original Weights: {raw_weights}")
     print(f"Smoothed Weights: {smoothed_weights}")
@@ -145,3 +98,18 @@ def get_cls_num_list(dataset, num_classes=10):
     
     print(f"📊 Class Distribution: {cls_num_list}")
     return cls_num_list
+
+def get_class_names(label_mapping, num_classes):
+    return [label_mapping.get(i, f"class_{i}") for i in range(num_classes)]
+
+def format_confusion_matrix_df(cm, class_names):
+    df = pd.DataFrame(cm, index=class_names, columns=class_names)
+    return df
+
+def save_confusion_matrix_artifacts(cm, class_names, out_prefix: Path):
+    df = pd.DataFrame(cm, index=class_names, columns=class_names)
+    out_prefix.parent.mkdir(parents=True, exist_ok=True)
+    df.to_csv(str(out_prefix) + ".csv", index=True)
+    with open(str(out_prefix) + ".txt", "w", encoding="utf-8") as f:
+        f.write(df.to_string())
+        f.write("\n")

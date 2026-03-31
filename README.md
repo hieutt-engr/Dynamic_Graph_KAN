@@ -1,4 +1,4 @@
-# CAN-SupCon-IDS
+# MRGA-KAN
 
 <!-- This is the implementation of the paper ["SupCon ResNet and Transfer Learning for the In-vehicle Intrusion Detection System"](https://arxiv.org/submit/4407238/view) -->
 

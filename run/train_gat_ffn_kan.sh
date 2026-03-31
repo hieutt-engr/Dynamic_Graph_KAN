@@ -1,0 +1,21 @@
+python train_gat_ffn_kan.py \
+  --graph_folder ./data/2017-subaru-forester/graphs_v1_small \
+  --save_folder ./save/graph_attention_ffn_kan \
+  --model_name graph_attention_ffn_kan \
+  --batch_size 64 \
+  --num_workers 8 \
+  --epochs 100 \
+  --print_freq 100 \
+  --learning_rate 0.001 \
+  --weight_decay 0.0001 \
+  --hidden_dim 128 \
+  --num_layers 3 \
+  --heads 4 \
+  --id_emb_dim 32 \
+  --rel_emb_dim 8 \
+  --dropout 0.2 \
+  --kan_hidden 128 \
+  --loss_name ce \
+  --use_class_weights \
+  --kan_reg_lambda 0.00001 \
+  --device cuda > ./save/log/train_gat_ffn_kan.log 2>&1 &
